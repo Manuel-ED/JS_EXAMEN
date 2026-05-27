@@ -1,0 +1,6 @@
+com/examen/api/ApiApplication.class
+com/examen/api/controller/ExamenController.class
+com/examen/api/repository/ProductoRepository.class
+com/examen/api/model/Producto.class
+com/examen/api/repository/TareaRepository.class
+com/examen/api/model/Tarea.class
