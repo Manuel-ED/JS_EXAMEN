@@ -1,0 +1,7 @@
+/workspaces/JS_EXAMEN/backend/src/main/java/com/examen/api/model/Producto.java
+/workspaces/JS_EXAMEN/backend/src/main/java/com/examen/api/controller/ExamenController.java
+/workspaces/JS_EXAMEN/backend/src/main/java/com/examen/api/service/TareaService.java
+/workspaces/JS_EXAMEN/backend/src/main/java/com/examen/api/repository/TareaRepository.java
+/workspaces/JS_EXAMEN/backend/src/main/java/com/examen/api/repository/ProductoRepository.java
+/workspaces/JS_EXAMEN/backend/src/main/java/com/examen/api/model/Tarea.java
+/workspaces/JS_EXAMEN/backend/src/main/java/com/examen/api/ApiApplication.java
