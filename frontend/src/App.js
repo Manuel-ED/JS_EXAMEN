@@ -1,62 +1,57 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { LayoutDashboard, ShoppingCart, CheckSquare, RefreshCw } from 'lucide-react';
 
 function App() {
-  const [tareas, setTareas] = useState([]);
   const [productos, setProductos] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState({ estudiante: '', producto: '', cantidad: 1, observacion: '' });
+  const [mensaje, setMensaje] = useState('');
 
-  // Función para obtener datos del backend
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const resTareas = await axios.get('/api/tareas');
-      const resProds = await axios.get('/api/productos');
-      setTareas(resTareas.data);
-      setProductos(resProds.data);
-    } catch (error) {
-      console.error("Error conectando al back:", error);
-    }
-    setLoading(false);
+  useEffect(() => { obtenerProductos(); }, []);
+
+  const obtenerProductos = async () => {
+    const res = await axios.get('/api/productos');
+    setProductos(res.data);
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const handleEnviar = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post('/api/pedidos', form);
+      setMensaje("¡Pedido registrado correctamente!");
+      setForm({ estudiante: '', producto: '', cantidad: 1, observacion: '' });
+    } catch (err) { alert("Error al pedir"); }
+  };
 
   return (
-    <div style={{ padding: '20px', fontFamily: 'sans-serif', backgroundColor: '#f4f7f6', minHeight: '100vh' }}>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-        <h1> <LayoutDashboard /> Dashboard Examen </h1>
-        <button onClick={fetchData} style={{ padding: '10px', cursor: 'pointer' }}>
-          <RefreshCw size={20} className={loading ? 'spin' : ''} /> Actualizar
-        </button>
-      </header>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-        {/* SECCIÓN TAREAS */}
-        <section style={{ background: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}>
-          <h2> <CheckSquare color="green" /> Tareas ({tareas.length})</h2>
-          <ul>
-            {tareas.length > 0 ? tareas.map(t => (
-              <li key={t.id}>{t.descripcion} - {t.completada ? '✅' : '⏳'}</li>
-            )) : <p>No hay tareas registradas.</p>}
-          </ul>
-        </section>
-
-        {/* SECCIÓN PRODUCTOS */}
-        <section style={{ background: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}>
-          <h2> <ShoppingCart color="blue" /> Productos ({productos.length})</h2>
-          <ul>
-            {productos.length > 0 ? productos.map(p => (
-              <li key={p.id}>{p.nombre} - S/ {p.precio}</li>
-            )) : <p>No hay productos registrados.</p>}
-          </ul>
-        </section>
+    <div style={{ padding: '20px', maxWidth: '800px', margin: 'auto' }}>
+      <h1>Cafetería UTP - Pedidos</h1>
+      
+      {/* SECCIÓN PRODUCTOS */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+        {productos.map(p => (
+          <div key={p.id} style={{ border: '1px solid #ccc', padding: '10px', borderRadius: '8px', opacity: p.stock === 0 ? 0.5 : 1 }}>
+            <h3>{p.nombre}</h3>
+            <p>Categoría: {p.categoria}</p>
+            <p>Precio: {new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' }).format(p.precio)}</p>
+            {p.stock === 0 ? <b style={{color: 'red'}}>SIN STOCK</b> : <span>Stock: {p.stock}</span>}
+          </div>
+        ))}
       </div>
+
+      {/* FORMULARIO */}
+      <form onSubmit={handleEnviar} style={{ marginTop: '30px', borderTop: '2px solid #eee', paddingTop: '20px' }}>
+        <h2>Registrar Pedido</h2>
+        <input placeholder="Nombre Estudiante" value={form.estudiante} onChange={e => setForm({...form, estudiante: e.target.value})} required /><br/>
+        <select value={form.producto} onChange={e => setForm({...form, producto: e.target.value})} required>
+          <option value="">Seleccione Producto</option>
+          {productos.filter(p => p.stock > 0).map(p => <option key={p.id} value={p.nombre}>{p.nombre}</option>)}
+        </select><br/>
+        <input type="number" placeholder="Cantidad" value={form.cantidad} onChange={e => setForm({...form, cantidad: e.target.value})} /><br/>
+        <textarea placeholder="Observación" value={form.observacion} onChange={e => setForm({...form, observacion: e.target.value})} /><br/>
+        <button type="submit">Enviar Pedido</button>
+      </form>
+      {mensaje && <p style={{color: 'green'}}>{mensaje}</p>}
     </div>
   );
 }
-
 export default App;
