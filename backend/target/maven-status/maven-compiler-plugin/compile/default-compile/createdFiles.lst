@@ -3,4 +3,6 @@ com/examen/api/controller/ExamenController.class
 com/examen/api/repository/ProductoRepository.class
 com/examen/api/model/Producto.class
 com/examen/api/repository/TareaRepository.class
+com/examen/api/repository/PedidoRepository.class
 com/examen/api/model/Tarea.class
+com/examen/api/model/Pedido.class

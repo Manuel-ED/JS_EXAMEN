@@ -1,12 +1,12 @@
-package com.example.api.model;
+package com.examen.api.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
 
-@Entity
+@Entity 
 @Data
 public class Pedido {
-    @Id
+    @Id 
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String estudiante;

@@ -29,13 +29,13 @@ function App() {
       {/* SECCIÓN PRODUCTOS */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
         {productos.map(p => (
-          <div key={p.id} style={{ border: '1px solid #ccc', padding: '10px', borderRadius: '8px', opacity: p.stock === 0 ? 0.5 : 1 }}>
-            <h3>{p.nombre}</h3>
-            <p>Categoría: {p.categoria}</p>
-            <p>Precio: {new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' }).format(p.precio)}</p>
-            {p.stock === 0 ? <b style={{color: 'red'}}>SIN STOCK</b> : <span>Stock: {p.stock}</span>}
-          </div>
-        ))}
+  <div key={p.id} style={{ border: '1px solid #ccc', padding: '10px', borderRadius: '8px', marginBottom: '10px' }}>
+    <h3>{p.nombre}</h3> {/* <--- Revisa que diga p.nombre */}
+    <p>Categoría: {p.categoria}</p>
+    <p>Precio: {p.precio ? new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' }).format(p.precio) : 'S/ 0.00'}</p>
+    <p>Stock: {p.stock}</p>
+  </div>
+))}
       </div>
 
       {/* FORMULARIO */}
