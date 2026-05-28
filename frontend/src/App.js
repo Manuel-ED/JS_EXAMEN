@@ -571,11 +571,10 @@ function Pregunta4() {
     }
   };
 
-  // Formatear fecha para input date (YYYY-MM-DD)
-    const formatearFechaParaInput = (fecha) => {
-      if (!fecha) return '';
-      return fecha;
-    };
+  // const formatearFechaParaInput = (fecha) => {
+  //   if (!fecha) return '';
+  //   return fecha;
+  // };
 
   if (cargando) return <div>Cargando tareas...</div>;
 
