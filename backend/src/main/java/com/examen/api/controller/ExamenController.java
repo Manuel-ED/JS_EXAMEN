@@ -1,5 +1,4 @@
 package com.examen.api.controller;
-
 import com.examen.api.model.*;
 import com.examen.api.repository.*;
 import java.util.Map;
@@ -62,4 +61,28 @@ public Incidencia cambiarEstado(@PathVariable Long id, @RequestBody Map<String, 
     return incidenciaRepo.save(inc);
 }
 
+// ===== PREGUNTA 3: CURSOS Y MATRÍCULAS =====
+@Autowired private CursoRepository cursoRepo;
+@Autowired private MatriculaRepository matriculaRepo;
+
+@GetMapping("/cursos")
+public List<Curso> listarCursos() {
+    return cursoRepo.findAll();
+}
+
+@GetMapping("/cursos/{id}")
+public Optional<Curso> obtenerCurso(@PathVariable Long id) {
+    return cursoRepo.findById(id);
+}
+
+@PostMapping("/matriculas")
+public Matricula crearMatricula(@RequestBody Matricula matricula) {
+    // Reducir vacantes del curso
+    Curso curso = cursoRepo.findByNombre(matricula.getCurso());
+    if (curso != null && curso.getVacantes() > 0) {
+        curso.setVacantes(curso.getVacantes() - 1);
+        cursoRepo.save(curso);
+    }
+    return matriculaRepo.save(matricula);
+}
 }

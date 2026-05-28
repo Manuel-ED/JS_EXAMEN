@@ -250,6 +250,219 @@ function Pregunta2() {
   );
 }
 
+// ==================== PREGUNTA 3: CURSOS Y MATRÍCULAS ====================
+function Pregunta3() {
+  const [cursos, setCursos] = useState([]);
+  const [cargando, setCargando] = useState(true);
+  const [resumen, setResumen] = useState(null);
+  const [mensaje, setMensaje] = useState('');
+  const [form, setForm] = useState({
+    nombre: '',
+    codigoEstudiante: '',
+    curso: '',
+    turno: ''
+  });
+
+  useEffect(() => {
+    obtenerCursos();
+  }, []);
+
+  const obtenerCursos = async () => {
+    try {
+      setCargando(true);
+      const res = await axios.get(`${API_URL}/cursos`);
+      setCursos(res.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!form.nombre || !form.codigoEstudiante || !form.curso || !form.turno) {
+      alert('Todos los campos son obligatorios');
+      return;
+    }
+
+    // Mostrar resumen antes de enviar
+    const cursoSeleccionado = cursos.find(c => c.nombre === form.curso);
+    setResumen({
+      ...form,
+      creditos: cursoSeleccionado?.creditos,
+      modalidad: cursoSeleccionado?.modalidad
+    });
+
+    try {
+      await axios.post(`${API_URL}/matriculas`, form);
+      setMensaje(`✅ ¡Matrícula registrada para ${form.nombre}! Vacantes actualizadas.`);
+      setForm({ nombre: '', codigoEstudiante: '', curso: '', turno: '' });
+      obtenerCursos(); // Actualizar vacantes
+      setTimeout(() => {
+        setMensaje('');
+        setResumen(null);
+      }, 5000);
+    } catch (err) {
+      alert('❌ Error al registrar matrícula');
+    }
+  };
+
+  const getModalidadColor = (modalidad) => {
+    switch(modalidad) {
+      case 'Virtual': return '#4caf50';
+      case 'Presencial': return '#2196f3';
+      case 'Semipresencial': return '#ff9800';
+      default: return '#666';
+    }
+  };
+
+  if (cargando) return <div>Cargando cursos...</div>;
+
+  return (
+    <div>
+      <h2>📚 Cursos Disponibles - Sistema de Matrículas</h2>
+
+      {/* Tabla responsiva con Bootstrap */}
+      <div style={{ overflowX: 'auto', marginBottom: '30px' }}>
+        <table className="table table-striped table-bordered" style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead className="table-dark">
+            <tr>
+              <th>Código</th>
+              <th>Nombre del Curso</th>
+              <th>Créditos</th>
+              <th>Modalidad</th>
+              <th>Vacantes</th>
+            </tr>
+          </thead>
+          <tbody>
+            {cursos.map(curso => (
+              <tr key={curso.id} style={{
+                backgroundColor: curso.vacantes === 0 ? '#f8d7da' : 'white'
+              }}>
+                <td>{curso.codigo}</td>
+                <td>
+                  <span style={{
+                    fontWeight: 'bold',
+                    textTransform: 'uppercase',
+                    letterSpacing: '1px'
+                  }}>
+                    {curso.nombre}
+                  </span>
+                </td>
+                <td>{curso.creditos}</td>
+                <td>
+                  <span style={{
+                    background: getModalidadColor(curso.modalidad),
+                    color: 'white',
+                    padding: '5px 10px',
+                    borderRadius: '20px',
+                    fontSize: '12px',
+                    fontWeight: 'bold'
+                  }}>
+                    {curso.modalidad}
+                  </span>
+                </td>
+                <td>
+                  {curso.vacantes === 0 ? (
+                    <span style={{ color: 'red', fontWeight: 'bold' }}>🚫 SIN VACANTES</span>
+                  ) : (
+                    <span style={{ color: 'green', fontWeight: 'bold' }}>{curso.vacantes} disponibles</span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Formulario de Matrícula */}
+      <div style={{ marginTop: '30px', padding: '20px', background: '#f5f5f5', borderRadius: '10px' }}>
+        <h3>📝 Solicitar Matrícula</h3>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px', maxWidth: '500px' }}>
+          <input
+            type="text"
+            placeholder="Nombre completo"
+            value={form.nombre}
+            onChange={e => setForm({...form, nombre: e.target.value})}
+            required
+            className="form-control"
+            style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ddd' }}
+          />
+          <input
+            type="text"
+            placeholder="Código de estudiante (ej: U20210001)"
+            value={form.codigoEstudiante}
+            onChange={e => setForm({...form, codigoEstudiante: e.target.value})}
+            required
+            className="form-control"
+            style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ddd' }}
+          />
+          <select
+            value={form.curso}
+            onChange={e => setForm({...form, curso: e.target.value})}
+            required
+            className="form-select"
+            style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ddd' }}
+          >
+            <option value="">Seleccione un curso</option>
+            {cursos.filter(c => c.vacantes > 0).map(curso => (
+              <option key={curso.id} value={curso.nombre}>
+                {curso.nombre} - {curso.modalidad} ({curso.vacantes} vacantes)
+              </option>
+            ))}
+          </select>
+          <select
+            value={form.turno}
+            onChange={e => setForm({...form, turno: e.target.value})}
+            required
+            className="form-select"
+            style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ddd' }}
+          >
+            <option value="">Seleccione un turno</option>
+            <option value="Mañana">🌅 Mañana (8:00 - 12:00)</option>
+            <option value="Tarde">🌇 Tarde (13:00 - 17:00)</option>
+            <option value="Noche">🌙 Noche (18:00 - 22:00)</option>
+          </select>
+          <button
+            type="submit"
+            className="btn btn-primary"
+            style={{ background: '#2196f3', color: 'white', padding: '12px', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
+          >
+            📨 Solicitar Matrícula
+          </button>
+        </form>
+
+        {/* Resumen de matrícula */}
+        {resumen && (
+          <div style={{
+            marginTop: '20px',
+            padding: '15px',
+            background: '#e3f2fd',
+            borderRadius: '10px',
+            borderLeft: '5px solid #2196f3'
+          }}>
+            <h4>📋 Resumen de Matrícula</h4>
+            <p><strong>Estudiante:</strong> {resumen.nombre}</p>
+            <p><strong>Código:</strong> {resumen.codigoEstudiante}</p>
+            <p><strong>Curso:</strong> {resumen.curso}</p>
+            <p><strong>Créditos:</strong> {resumen.creditos}</p>
+            <p><strong>Modalidad:</strong> {resumen.modalidad}</p>
+            <p><strong>Turno:</strong> {resumen.turno}</p>
+            <p style={{ color: 'green', marginTop: '10px' }}>
+              ✅ ¡Matrícula procesada correctamente!
+            </p>
+          </div>
+        )}
+
+        {mensaje && !resumen && (
+          <p style={{ color: 'green', marginTop: '15px' }}>{mensaje}</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ==================== APP PRINCIPAL CON NAVEGACIÓN ====================
 function App() {
   const [pagina, setPagina] = useState('inicio');
@@ -307,12 +520,28 @@ function App() {
         >
           🛠️ Incidencias
         </button>
+
+        <button 
+          onClick={() => setPagina('pregunta3')}
+          style={{
+            background: pagina === 'pregunta3' ? '#4caf50' : '#f5f5f5',
+            color: pagina === 'pregunta3' ? 'white' : '#333',
+            border: 'none',
+            padding: '10px 20px',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            fontSize: '16px'
+          }}
+        >
+          📚 Cursos
+        </button>
       </nav>
 
       {/* Contenido según la página seleccionada */}
       {pagina === 'inicio' && <Inicio />}
       {pagina === 'pregunta1' && <Pregunta1 />}
       {pagina === 'pregunta2' && <Pregunta2 />}
+      {pagina === 'pregunta3' && <Pregunta3 />}
     </div>
   );
 }
