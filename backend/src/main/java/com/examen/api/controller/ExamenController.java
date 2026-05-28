@@ -5,6 +5,7 @@ import com.examen.api.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
@@ -20,12 +21,22 @@ public class ExamenController {
     }
 
     @GetMapping("/productos/{id}")
-    public Producto obtenerUno(@PathVariable Long id) { 
-        return prodRepo.findById(id).orElse(null); 
+    public Optional<Producto> obtenerUno(@PathVariable Long id) { 
+        return prodRepo.findById(id); 
     }
 
     @PostMapping("/productos")
-public Producto guardarProducto(@RequestBody Producto producto) {
-    return prodRepo.save(producto);
-}
+    public Producto guardarProducto(@RequestBody Producto producto) {
+        return prodRepo.save(producto);
+    }
+
+    @PostMapping("/pedidos")
+    public Pedido crearPedido(@RequestBody Pedido pedido) {
+        return pedidoRepo.save(pedido);
+    }
+    
+    @GetMapping("/pedidos")
+    public List<Pedido> listarPedidos() {
+        return pedidoRepo.findAll();
+    }
 }
