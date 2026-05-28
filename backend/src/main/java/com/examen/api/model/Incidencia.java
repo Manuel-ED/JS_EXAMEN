@@ -17,5 +17,5 @@ public class Incidencia {
     private String equipo;
     private String tipo;
     private String descripcion;
-    private String estado; // Pendiente, En proceso, Atendida
+    private String estado;
 }

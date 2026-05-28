@@ -16,6 +16,6 @@ public class Curso {
     private String codigo;
     private String nombre;
     private Integer creditos;
-    private String modalidad; // Presencial, Virtual, Semipresencial
+    private String modalidad;
     private Integer vacantes;
 }

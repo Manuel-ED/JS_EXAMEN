@@ -17,6 +17,6 @@ public class Tarea {
     private String titulo;
     private String curso;
     private LocalDate fechaEntrega;
-    private String estado; // Pendiente, Completada
-    private String prioridad; // Alta, Media, Baja
+    private String estado;
+    private String prioridad; 
 }

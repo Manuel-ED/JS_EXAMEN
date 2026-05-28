@@ -16,5 +16,5 @@ public class Matricula {
     private String nombre;
     private String codigoEstudiante;
     private String curso;
-    private String turno; // Mañana, Tarde, Noche
+    private String turno;
 }
