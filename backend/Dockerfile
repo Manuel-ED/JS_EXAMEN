@@ -2,15 +2,14 @@ FROM eclipse-temurin:17-jdk-alpine
 
 WORKDIR /app
 
-COPY .mvn/ .mvn
-COPY mvnw pom.xml ./
-RUN chmod +x mvnw
-RUN ./mvnw dependency:go-offline
-
+# Copiar el pom.xml y el código fuente
+COPY pom.xml .
 COPY src ./src
 
-RUN ./mvnw clean package -DskipTests
+# Instalar Maven y compilar
+RUN apk add --no-cache maven
+RUN mvn clean package -DskipTests
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "target/*.jar"]
+CMD ["java", "-jar", "target/*.jar"]
