@@ -463,6 +463,332 @@ function Pregunta3() {
   );
 }
 
+// ==================== PREGUNTA 4: GESTOR DE TAREAS ====================
+function Pregunta4() {
+  const [tareas, setTareas] = useState([]);
+  const [cargando, setCargando] = useState(true);
+  const [editandoId, setEditandoId] = useState(null);
+  const [mensaje, setMensaje] = useState('');
+  const [form, setForm] = useState({
+    titulo: '',
+    curso: '',
+    fechaEntrega: '',
+    estado: 'Pendiente',
+    prioridad: 'Media'
+  });
+
+  useEffect(() => {
+    obtenerTareas();
+  }, []);
+
+  const obtenerTareas = async () => {
+    try {
+      setCargando(true);
+      const res = await axios.get(`${API_URL}/tareas`);
+      setTareas(res.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!form.titulo || !form.curso || !form.fechaEntrega) {
+      alert('Todos los campos son obligatorios');
+      return;
+    }
+
+    try {
+      if (editandoId) {
+        // Editar tarea existente
+        await axios.put(`${API_URL}/tareas/${editandoId}`, form);
+        setMensaje('✏️ Tarea actualizada correctamente');
+        setEditandoId(null);
+      } else {
+        // Crear nueva tarea
+        await axios.post(`${API_URL}/tareas`, form);
+        setMensaje('✅ Tarea registrada correctamente');
+      }
+      
+      setForm({ titulo: '', curso: '', fechaEntrega: '', estado: 'Pendiente', prioridad: 'Media' });
+      obtenerTareas();
+      setTimeout(() => setMensaje(''), 3000);
+    } catch (err) {
+      alert('❌ Error al procesar la tarea');
+    }
+  };
+
+  const handleEditar = (tarea) => {
+    setEditandoId(tarea.id);
+    setForm({
+      titulo: tarea.titulo,
+      curso: tarea.curso,
+      fechaEntrega: tarea.fechaEntrega,
+      estado: tarea.estado,
+      prioridad: tarea.prioridad
+    });
+  };
+
+  const handleEliminar = async (id) => {
+    if (window.confirm('¿Estás seguro de eliminar esta tarea?')) {
+      try {
+        await axios.delete(`${API_URL}/tareas/${id}`);
+        setMensaje('🗑️ Tarea eliminada correctamente');
+        obtenerTareas();
+        setTimeout(() => setMensaje(''), 3000);
+      } catch (err) {
+        alert('❌ Error al eliminar la tarea');
+      }
+    }
+  };
+
+  const handleCancelarEdicion = () => {
+    setEditandoId(null);
+    setForm({ titulo: '', curso: '', fechaEntrega: '', estado: 'Pendiente', prioridad: 'Media' });
+  };
+
+  const esTareaVencida = (fechaEntrega, estado) => {
+    const hoy = new Date().toISOString().split('T')[0];
+    return fechaEntrega < hoy && estado === 'Pendiente';
+  };
+
+  const esTareaUrgente = (fechaEntrega, prioridad) => {
+    const hoy = new Date().toISOString().split('T')[0];
+    const fecha = new Date(fechaEntrega);
+    const hoyDate = new Date(hoy);
+    const diferenciaDias = Math.ceil((fecha - hoyDate) / (1000 * 60 * 60 * 24));
+    return diferenciaDias <= 3 && prioridad === 'Alta' && fecha >= hoy;
+  };
+
+  const getPrioridadColor = (prioridad) => {
+    switch(prioridad) {
+      case 'Alta': return '#f44336';
+      case 'Media': return '#ff9800';
+      case 'Baja': return '#4caf50';
+      default: return '#999';
+    }
+  };
+
+  // Formatear fecha para input date (YYYY-MM-DD)
+  const formatearFechaParaInput = (fecha) => {
+    if (!fecha) return '';
+    return fecha;
+  };
+
+  if (cargando) return <div>Cargando tareas...</div>;
+
+  return (
+    <div>
+      <h2>📋 Gestor de Tareas Académicas</h2>
+
+      {/* Alerta de tareas vencidas */}
+      {tareas.some(t => esTareaVencida(t.fechaEntrega, t.estado)) && (
+        <div style={{
+          background: '#f44336',
+          color: 'white',
+          padding: '15px',
+          borderRadius: '8px',
+          marginBottom: '20px',
+          textAlign: 'center'
+        }}>
+          ⚠️ ¡ALERTA! Tienes tareas vencidas pendientes. ¡Revisa la tabla!
+        </div>
+      )}
+
+      {/* Tabla de tareas */}
+      <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr style={{ background: '#f2f2f2' }}>
+              <th style={{ border: '1px solid #ddd', padding: '12px' }}>Título</th>
+              <th style={{ border: '1px solid #ddd', padding: '12px' }}>Curso</th>
+              <th style={{ border: '1px solid #ddd', padding: '12px' }}>Fecha Entrega</th>
+              <th style={{ border: '1px solid #ddd', padding: '12px' }}>Estado</th>
+              <th style={{ border: '1px solid #ddd', padding: '12px' }}>Prioridad</th>
+              <th style={{ border: '1px solid #ddd', padding: '12px' }}>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {tareas.map(tarea => {
+              const vencida = esTareaVencida(tarea.fechaEntrega, tarea.estado);
+              const urgente = esTareaUrgente(tarea.fechaEntrega, tarea.prioridad);
+              
+              return (
+                <tr key={tarea.id} style={{
+                  backgroundColor: vencida ? '#ffebee' : urgente ? '#fff3e0' : 'white'
+                }}>
+                  <td style={{ border: '1px solid #ddd', padding: '10px' }}>
+                    <strong>{tarea.titulo}</strong>
+                    {vencida && <span style={{ color: 'red', marginLeft: '10px' }}>⏰ VENCIDA</span>}
+                    {urgente && !vencida && <span style={{ color: 'orange', marginLeft: '10px' }}>🔥 URGENTE</span>}
+                  </td>
+                  <td style={{ border: '1px solid #ddd', padding: '10px' }}>{tarea.curso}</td>
+                  <td style={{ border: '1px solid #ddd', padding: '10px' }}>
+                    {new Intl.DateTimeFormat('es-PE', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    }).format(new Date(tarea.fechaEntrega))}
+                  </td>
+                  <td style={{ border: '1px solid #ddd', padding: '10px' }}>
+                    <select
+                      value={tarea.estado}
+                      onChange={async (e) => {
+                        const nuevoEstado = e.target.value;
+                        try {
+                          await axios.put(`${API_URL}/tareas/${tarea.id}`, {
+                            ...tarea,
+                            estado: nuevoEstado
+                          });
+                          obtenerTareas();
+                          setMensaje('Estado actualizado');
+                          setTimeout(() => setMensaje(''), 2000);
+                        } catch (err) {
+                          alert('Error al actualizar estado');
+                        }
+                      }}
+                      style={{ padding: '5px', borderRadius: '5px' }}
+                    >
+                      <option value="Pendiente">Pendiente</option>
+                      <option value="Completada">Completada</option>
+                    </select>
+                  </td>
+                  <td style={{ border: '1px solid #ddd', padding: '10px' }}>
+                    <span style={{
+                      background: getPrioridadColor(tarea.prioridad),
+                      color: 'white',
+                      padding: '5px 10px',
+                      borderRadius: '20px',
+                      fontSize: '12px',
+                      fontWeight: 'bold'
+                    }}>
+                      {tarea.prioridad}
+                    </span>
+                  </td>
+                  <td style={{ border: '1px solid #ddd', padding: '10px' }}>
+                    <button
+                      onClick={() => handleEditar(tarea)}
+                      style={{
+                        background: '#ff9800',
+                        color: 'white',
+                        border: 'none',
+                        padding: '5px 10px',
+                        borderRadius: '5px',
+                        cursor: 'pointer',
+                        marginRight: '5px'
+                      }}
+                    >
+                      ✏️ Editar
+                    </button>
+                    <button
+                      onClick={() => handleEliminar(tarea.id)}
+                      style={{
+                        background: '#f44336',
+                        color: 'white',
+                        border: 'none',
+                        padding: '5px 10px',
+                        borderRadius: '5px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      🗑️ Eliminar
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Formulario Nueva/Editar Tarea */}
+      <div style={{ marginTop: '30px', padding: '20px', background: '#f5f5f5', borderRadius: '10px' }}>
+        <h3>{editandoId ? '✏️ Editar Tarea' : '📝 Nueva Tarea'}</h3>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px', maxWidth: '500px' }}>
+          <input
+            type="text"
+            placeholder="Título de la tarea"
+            value={form.titulo}
+            onChange={e => setForm({...form, titulo: e.target.value})}
+            required
+            style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ddd' }}
+          />
+          <input
+            type="text"
+            placeholder="Curso"
+            value={form.curso}
+            onChange={e => setForm({...form, curso: e.target.value})}
+            required
+            style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ddd' }}
+          />
+          <input
+            type="date"
+            value={form.fechaEntrega}
+            onChange={e => setForm({...form, fechaEntrega: e.target.value})}
+            required
+            style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ddd' }}
+          />
+          <select
+            value={form.estado}
+            onChange={e => setForm({...form, estado: e.target.value})}
+            style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ddd' }}
+          >
+            <option value="Pendiente">Pendiente</option>
+            <option value="Completada">Completada</option>
+          </select>
+          <select
+            value={form.prioridad}
+            onChange={e => setForm({...form, prioridad: e.target.value})}
+            style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ddd' }}
+          >
+            <option value="Alta">Alta 🔴</option>
+            <option value="Media">Media 🟠</option>
+            <option value="Baja">Baja 🟢</option>
+          </select>
+          
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button
+              type="submit"
+              style={{
+                background: editandoId ? '#ff9800' : '#4caf50',
+                color: 'white',
+                padding: '12px',
+                border: 'none',
+                borderRadius: '5px',
+                cursor: 'pointer',
+                flex: 1
+              }}
+            >
+              {editandoId ? '✏️ Actualizar Tarea' : '📨 Registrar Tarea'}
+            </button>
+            {editandoId && (
+              <button
+                type="button"
+                onClick={handleCancelarEdicion}
+                style={{
+                  background: '#999',
+                  color: 'white',
+                  padding: '12px',
+                  border: 'none',
+                  borderRadius: '5px',
+                  cursor: 'pointer'
+                }}
+              >
+                Cancelar
+              </button>
+            )}
+          </div>
+        </form>
+        {mensaje && (
+          <p style={{ color: 'green', marginTop: '15px', textAlign: 'center' }}>{mensaje}</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ==================== APP PRINCIPAL CON NAVEGACIÓN ====================
 function App() {
   const [pagina, setPagina] = useState('inicio');
@@ -535,6 +861,21 @@ function App() {
         >
           📚 Cursos
         </button>
+
+        <button 
+        onClick={() => setPagina('pregunta4')}
+        style={{
+          background: pagina === 'pregunta4' ? '#9c27b0' : '#f5f5f5',
+          color: pagina === 'pregunta4' ? 'white' : '#333',
+          border: 'none',
+          padding: '10px 20px',
+          borderRadius: '8px',
+          cursor: 'pointer',
+          fontSize: '16px'
+        }}
+      >
+        📋 Tareas
+      </button>
       </nav>
 
       {/* Contenido según la página seleccionada */}
@@ -542,6 +883,7 @@ function App() {
       {pagina === 'pregunta1' && <Pregunta1 />}
       {pagina === 'pregunta2' && <Pregunta2 />}
       {pagina === 'pregunta3' && <Pregunta3 />}
+      {pagina === 'pregunta4' && <Pregunta4 />}
     </div>
   );
 }

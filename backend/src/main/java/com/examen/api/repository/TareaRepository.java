@@ -1,5 +1,9 @@
 package com.examen.api.repository;
+
 import com.examen.api.model.Tarea;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-public interface TareaRepository extends JpaRepository<Tarea, Long> { }
+@Repository
+public interface TareaRepository extends JpaRepository<Tarea, Long> {
+}

@@ -1,6 +1,7 @@
 package com.examen.api.controller;
 import com.examen.api.model.*;
 import com.examen.api.repository.*;
+
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -84,5 +85,34 @@ public Matricula crearMatricula(@RequestBody Matricula matricula) {
         cursoRepo.save(curso);
     }
     return matriculaRepo.save(matricula);
+}
+
+// ===== PREGUNTA 4: TAREAS =====
+@Autowired private TareaRepository tareaRepo;
+
+@GetMapping("/tareas")
+public List<Tarea> listarTareas() {
+    return tareaRepo.findAll();
+}
+
+@PostMapping("/tareas")
+public Tarea crearTarea(@RequestBody Tarea tarea) {
+    return tareaRepo.save(tarea);
+}
+
+@PutMapping("/tareas/{id}")
+public Tarea actualizarTarea(@PathVariable Long id, @RequestBody Tarea tarea) {
+    Tarea existing = tareaRepo.findById(id).orElseThrow();
+    existing.setTitulo(tarea.getTitulo());
+    existing.setCurso(tarea.getCurso());
+    existing.setFechaEntrega(tarea.getFechaEntrega());
+    existing.setEstado(tarea.getEstado());
+    existing.setPrioridad(tarea.getPrioridad());
+    return tareaRepo.save(existing);
+}
+
+@DeleteMapping("/tareas/{id}")
+public void eliminarTarea(@PathVariable Long id) {
+    tareaRepo.deleteById(id);
 }
 }
